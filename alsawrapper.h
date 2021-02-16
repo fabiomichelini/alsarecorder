@@ -215,11 +215,3 @@ typedef struct aw_thread_struct_t
 void* aw_thread_func (void* p_thread_struct);
 
 #endif  // ALSAWRAPPER_H_
-
-// apt-get install libasound2-dev mette "asoundlib.h" in "/usr/include/alsa"
-// scaricare wxwidgets e seguire compilazione e installazione
-// gcc -g -Wall -shared -o alsawrapper.so -fPIC alsawrapper.c -lasound
-// gcc -g -o alsawrapper -fPIC alsawrapper.c -lasound -lpthread -lm
-// g++ `wx-config --cxxflags` -o alsawrapper alsawrapper.cpp `wx-config --libs` -lasound -lpthread -lm
-// l=cdll.LoadLibrary("./alsawrapper.so")
-// nm -D alsawrapper.so per vedere  cosa espone (contrassegnati con T)
