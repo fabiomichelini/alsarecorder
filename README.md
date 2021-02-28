@@ -24,7 +24,7 @@ in your application folder and move
   
 in /usr/share/applications/ or in /.local/share/applications under your home dir. Pre-builded alsarecorder executable is tested on Debian 10.
 
-### screeshot
+### screenshot
 ![Alsa Recorder screenshot](/media/screenshot.png)
 
 ### to do
