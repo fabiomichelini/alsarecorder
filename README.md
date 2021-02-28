@@ -4,9 +4,9 @@ Simple recorder application based on alsa.
 ![Alsa Recorder Logo](/media/alsarecorder-icon.png)
 
 ### dependencies
-* libgtk-3-0 libgtk-3-dev
-* libasound2-dev
-* ffmpeg
+* apt install libgtk-3-0 libgtk-3-dev
+* apt install libasound2-dev
+* apt install ffmpeg
 
 ### compilation
 Just download zip, unpack and run:  
