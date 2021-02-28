@@ -1,7 +1,5 @@
-### alsarecorder
+### alsarecorder ![Alsa Recorder Logo](/media/alsarecorder-icon.png)
 Simple recorder application based on alsa.
-
-![Alsa Recorder Logo](/media/alsarecorder-icon.png)
 
 ### dependencies
 * libgtk-3-0 libgtk-3-dev
