@@ -26,6 +26,7 @@ in /usr/share/applications/ or in /.local/share/applications under your home dir
 
 ### screenshot
 ![Alsa Recorder screenshot](/media/screenshot.png | width=200)
+<img src="/media/screenshot.png" width="200" />
 
 ### to do
 * replace arrays with malloc and free  
