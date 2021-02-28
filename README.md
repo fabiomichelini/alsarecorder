@@ -1,5 +1,7 @@
-### alsarecorder ![Alsa Recorder Logo](/media/alsarecorder-icon.png)
-Simple recorder application based on alsa.
+### alsarecorder
+Simple recorder application based on alsa.  
+  
+![Alsa Recorder Logo](/media/alsarecorder-icon.png)
 
 ### dependencies
 * libgtk-3-0 libgtk-3-dev
@@ -21,6 +23,9 @@ in your application folder and move
 * alsarecorder.desktop
   
 in /usr/share/applications/ or in /.local/share/applications under your home dir. Pre-builded alsarecorder executable is tested on Debian 10.
+
+### screeshot
+![Alsa Recorder screenshot](/media/screenshot.png)
 
 ### to do
 * replace arrays with malloc and free  
