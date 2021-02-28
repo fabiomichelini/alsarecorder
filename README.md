@@ -22,8 +22,7 @@ in your application folder and move
   
 * alsarecorder.desktop
   
-in /usr/share/applications/ or in /.local/share/applications under your home dir.  
-Pre-builded alsarecorder executable is tested on Debian 10.
+in /usr/share/applications/ or in /.local/share/applications under your home dir. Pre-builded alsarecorder executable is tested on Debian 10.
 
 ### to do
 * replace arrays with malloc and free  
