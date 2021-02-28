@@ -9,7 +9,7 @@ libasound2-dev
 ffmpeg
 
 ### compilation
-`gcc -rdynamic -no-pie `pkg-config --cflags gtk+-3.0` -o alsarecorder alsarecorder.c alsawrapper.c `pkg-config --libs gtk+-3.0` -lasound -lpthread -lm`
+`gcc -rdynamic -no-pie \`pkg-config --cflags gtk+-3.0\` -o alsarecorder alsarecorder.c alsawrapper.c \`pkg-config --libs gtk+-3.0\` -lasound -lpthread -lm`
 
 ### pre-build
 Just copy
