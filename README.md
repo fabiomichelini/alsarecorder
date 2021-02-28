@@ -14,7 +14,7 @@ Just download zip, unpack and run:
 Than make it executable with ```chmod +x alsarecorder``` and double click on it.
 
 ### pre-build
-Just download zip, unpack and double click on pre-builded executable ```alsarecorder```. Is tested on Debian 10.
+Just download zip, unpack and double click on pre-builded executable ```alsarecorder```. Tested on Debian 10.
 
 ### screenshot
 <img src="/media/screenshot.png" width="300" />
