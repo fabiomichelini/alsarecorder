@@ -16,9 +16,12 @@ Just copy:
 * alsarecorder  
 * alsarecorder.glade  
 * alsarecorder.css  
-* media    
+* media
+
 in your application folder and move  
-* alsarecorder.desktop  
+  
+* alsarecorder.desktop
+  
 in /usr/share/applications/ or in /.local/share/applications under your home dir.  
 Pre-builded alsarecorder executable is tested on Debian 10.
 
