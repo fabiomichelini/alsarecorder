@@ -1,5 +1,7 @@
 ## Alsa Recorder
 Simple recorder application based on alsa.  
+Expose all audio cards with a selection of "popular" options (channels, framerate, format).  
+Logarithmic VU meters, clipping and peak facilities, wav and mp3 save formats.
   
 ![Alsa Recorder Logo](/media/alsarecorder-icon.png)
 
