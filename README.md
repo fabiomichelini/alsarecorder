@@ -1,4 +1,4 @@
-### alsarecorder
+### Alsa Recorder
 Simple recorder application based on alsa.  
   
 ![Alsa Recorder Logo](/media/alsarecorder-icon.png)
