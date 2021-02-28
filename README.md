@@ -10,10 +10,11 @@ Simple recorder application based on alsa.
 
 ### compilation
 Just download zip, unpack and run:  
-```gcc -rdynamic -no-pie `pkg-config --cflags gtk+-3.0` -o alsarecorder alsarecorder.c alsawrapper.c `pkg-config --libs gtk+-3.0` -lasound -lpthread -lm```
+```gcc -rdynamic -no-pie `pkg-config --cflags gtk+-3.0` -o alsarecorder alsarecorder.c alsawrapper.c `pkg-config --libs gtk+-3.0` -lasound -lpthread -lm```  
+Than make it executable with ```chmod +x alsarecorder``` and double click on it.
 
 ### pre-build
-Just download zip, unpack and run pre-builded executable ```alsarecorder```. Is tested on Debian 10.
+Just download zip, unpack and double click on pre-builded executable ```alsarecorder```. Is tested on Debian 10.
 
 ### screenshot
 <img src="/media/screenshot.png" width="300" />
