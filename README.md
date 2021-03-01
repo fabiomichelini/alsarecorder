@@ -12,7 +12,9 @@ Logarithmic VU meters, clipping and peak facilities, wav and mp3 save formats.
 
 ### compilation
 Just download zip, unpack and run:  
+  
 ```gcc -rdynamic -no-pie `pkg-config --cflags gtk+-3.0` -o alsarecorder alsarecorder.c alsawrapper.c `pkg-config --libs gtk+-3.0` -lasound -lpthread -lm```  
+  
 Than make it executable with ```chmod +x alsarecorder``` and double click on it.
 
 ### pre-build
