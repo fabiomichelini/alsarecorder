@@ -279,11 +279,9 @@ int aw_set_params (snd_pcm_t* p_pcm, AwPcmParams* p_hw_params)
     int err;
     int dir = 0;
     snd_pcm_hw_params_t* p_alsa_hw_params;
-    uint32_t min_buffer_time;
-    uint32_t max_buffer_time;
-    uint32_t min_period_time;
-    uint32_t max_period_time;
-    uint32_t period_time = AW_DEFAULT_PERIOD_TIME;
+    unsigned int min_buffer_time;
+    unsigned int max_buffer_time;
+    unsigned int buffer_time = AW_DEFAULT_BUFFER_TIME;
     
     if ((err = snd_pcm_hw_params_malloc (&p_alsa_hw_params)) < 0)
         return aw_handle_err (snd_strerror (err));
@@ -303,24 +301,14 @@ int aw_set_params (snd_pcm_t* p_pcm, AwPcmParams* p_hw_params)
     if ((err = snd_pcm_hw_params_set_channels (p_pcm, p_alsa_hw_params, (*p_hw_params).nchannels)) < 0)
         return aw_handle_err (snd_strerror (err));
     
-    snd_pcm_hw_params_get_period_time_min (p_alsa_hw_params, &min_period_time, &dir);
-    snd_pcm_hw_params_get_period_time_max (p_alsa_hw_params, &max_period_time, &dir);
-    snd_pcm_hw_params_get_buffer_time_min (p_alsa_hw_params, &min_buffer_time, &dir);
-    snd_pcm_hw_params_get_buffer_time_max (p_alsa_hw_params, &max_buffer_time, &dir);
-
-    // TODO: check respect with DEFAULT_PERIDO_TIME
-
-    if ((err = snd_pcm_hw_params_set_period_time_near (p_pcm, p_alsa_hw_params, &period_time, &dir)) < 0)
-        return aw_handle_err (snd_strerror (err));
-
-    if ((err = snd_pcm_hw_params_get_period_size (p_alsa_hw_params, &(*p_hw_params).period_size, &dir)) < 0)
-        return aw_handle_err (snd_strerror (err));
+    if ((err = snd_pcm_hw_params_set_buffer_time_near (p_pcm, p_alsa_hw_params, &buffer_time, &dir)) < 0)
+        return aw_handle_err (snd_strerror (err));    
     
-    (*p_hw_params).buffer_size = (*p_hw_params).period_size * AW_BUFFER_PERIOD_RATIO;
+    if (buffer_time != AW_DEFAULT_BUFFER_TIME)
+        printf ("need adjust buffer size");
 
-    if ((err = snd_pcm_hw_params_set_buffer_size (p_pcm, p_alsa_hw_params, (*p_hw_params).buffer_size)) < 0)
-        return aw_handle_err (snd_strerror (err));
-    
+	snd_pcm_hw_params_get_buffer_size(p_alsa_hw_params, &(*p_hw_params).buffer_size);
+
     if ((err = snd_pcm_hw_params (p_pcm, p_alsa_hw_params)) < 0)
         return aw_handle_err (snd_strerror(err));
 
@@ -350,7 +338,7 @@ int aw_set_params (snd_pcm_t* p_pcm, AwPcmParams* p_hw_params)
 
     (*p_hw_params).nominal_bits = snd_pcm_format_width ((*p_hw_params).format);
     (*p_hw_params).real_bits = snd_pcm_format_physical_width ((*p_hw_params).format);
-    (*p_hw_params).max = pow (256, (*p_hw_params).nominal_bits / 8) / 2;
+    (*p_hw_params).max = pow (2, (*p_hw_params).nominal_bits) / 2;
     (*p_hw_params).samplesize = (*p_hw_params).real_bits / 8;
     (*p_hw_params).samplerate = (*p_hw_params).nchannels * (*p_hw_params).framerate;    
     (*p_hw_params).framesize = (*p_hw_params).nchannels * (*p_hw_params).samplesize;
