@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Alsa Recorder
+GenericName=Audio Recorder
+Comment=Record Audio
+Exec=/absolute/path/to/alsarecorder/alsarecorder %U
+Path=/absolute/path/to/alsarecorder
+Terminal=false
+Type=Application
+Icon=/absolute/path/to/alsarecorder/media/alsarecorder-icon.png
+Categories=Audio;
+StartupWMClass=Alsa Recorder
+StartupNotify=false
