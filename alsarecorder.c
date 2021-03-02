@@ -30,6 +30,7 @@
 #include "pwd.h"
 #include "unistd.h"
 #include "pwd.h"
+#include "locale.h"
 
 #include "gtk/gtk.h"
 
@@ -446,7 +447,7 @@ int arAbout ()
     gtk_widget_show_all (dialog);
 }
 
-int arUpdatePcmDevices ()
+int arDrawPcmDevices ()
 {
     int i;
     int j;
@@ -493,7 +494,7 @@ int arResetNumericMeter (GtkButton* button)
     ss.max[i] = 0; // TODO
 }
 
-int arUpdateVUMeters ()
+int arDrawVUMeters ()
 {
     GList* children;
     GList* iter;
@@ -539,10 +540,7 @@ int arUpdateVUMeters ()
         gtk_level_bar_set_value (bar, 70);
         gtk_level_bar_set_inverted (bar, TRUE);
         gtk_orientable_set_orientation (GTK_ORIENTABLE (bar), GTK_ORIENTATION_VERTICAL);
-        gtk_level_bar_set_mode (bar, GTK_LEVEL_BAR_MODE_CONTINUOUS); // GTK_LEVEL_BAR_MODE_DISCRETE
-        // gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (bar)), "vu-graphic-meter");
-        gtk_level_bar_add_offset_value (bar, "alert", 0.5);
-        gtk_level_bar_add_offset_value (bar, "danger", 0.75);
+        gtk_level_bar_set_mode (bar, GTK_LEVEL_BAR_MODE_DISCRETE);
         gtk_box_pack_start (GUI->vuGraphicMetersBox, GTK_WIDGET (bar), TRUE, TRUE, 2);
         GUI->vuGraphicMeters[i] = bar;
         
@@ -648,7 +646,7 @@ int arChangePcmOptionsNChannels (GtkRadioButton* button) {
             // TODO: unfreeze gui with restart icon
         }
     }
-    arUpdateVUMeters ();
+    arDrawVUMeters ();
 }
 
 int arChangePcmOptionsFramerate (GtkRadioButton* button) {
@@ -831,7 +829,7 @@ int arUpdatePcmOptionsPanel ()
     }
     gtk_widget_show_all (GTK_WIDGET (GUI->pcmFormatOptions));
 
-    arUpdateVUMeters ();
+    arDrawVUMeters ();
 }
 
 int arChangePcmDevice (GtkRadioButton* button)
@@ -972,7 +970,7 @@ int main (int argc, char **argv)
     ===============*/
 
 
-    arUpdatePcmDevices ();
+    arDrawPcmDevices ();
     if (arGetPcmDevice (&p_aw_pcm) < 0)
         gtk_main_quit();
 
