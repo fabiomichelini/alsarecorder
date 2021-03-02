@@ -879,9 +879,6 @@ int arDrawPcmDevicesPanel ()
         gtk_container_add (GTK_CONTAINER (GUI->deviceOptionsButtonBox), GTK_WIDGET (button));
         gtk_widget_set_name (GTK_WIDGET (button), aw_pcms[i].name);
 
-        // gtk_toggle_button_set_mode (GTK_TOGGLE_BUTTON (button), FALSE);
-        // gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (button)), "option-button");
-
         if (aw_pcms[i].name == (*p_aw_pcm).name)
         {
             gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
