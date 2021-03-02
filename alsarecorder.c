@@ -38,7 +38,7 @@
 
 
 #define MAX_CHANNELS 32
-#define UPDATE_TIMER_INTERVAL 100 // in sec
+#define UPDATE_TIMER_INTERVAL 120 // in msec
 #define MAX_TOT_TIME 3600 // in sec
 #define SAVE_TO_WAV 0
 #define SAVE_TO_MP3 1
