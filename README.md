@@ -28,5 +28,4 @@ Customize and put ```alsarecorder.desktop```launcher in ```/.local/share/applica
 <img src="/media/screenshot.png" width="300" />
 
 ### to do
-* replace arrays with malloc and free  
 * save in memory with iostream  
