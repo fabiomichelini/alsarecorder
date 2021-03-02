@@ -12,14 +12,17 @@ Micro library alsawrapper provide some alsa facilities.
 * ffmpeg
 
 ### compilation
-Just download zip, unpack and run:  
+Download zip, unpack and compile with:  
   
 ```gcc -rdynamic -no-pie `pkg-config --cflags gtk+-3.0` -o alsarecorder alsarecorder.c alsawrapper.c `pkg-config --libs gtk+-3.0` -lasound -lpthread -lm```  
   
 Than make it executable with ```chmod +x alsarecorder``` and double click on it.
 
 ### pre-build
-Just download zip, unpack and double click on pre-builded executable ```alsarecorder```. Tested on Debian 10.
+Download zip, unpack and double click on pre-builded executable ```alsarecorder```.
+
+### launcher
+Customize and put ```alsarecorder.desktop```launcher in ```/.local/share/applications/``` under your home or in ```/usr/share/applications/``` for all users.
 
 ### screenshot
 <img src="/media/screenshot.png" width="300" />
