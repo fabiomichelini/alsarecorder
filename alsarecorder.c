@@ -14,10 +14,6 @@
  * RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF
  * CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- * 
- * apt install libgtk-3-0 libgtk-3-dev
- * apt install libasound2-dev
- * apt install ffmpeg
  *
  * compile with: gcc -rdynamic -no-pie `pkg-config --cflags gtk+-3.0` -o alsarecorder alsarecorder.c alsawrapper.c `pkg-config --libs gtk+-3.0` -lasound -lpthread -lm
 */
@@ -29,8 +25,6 @@
 #include "stdint.h"
 #include "pwd.h"
 #include "unistd.h"
-#include "pwd.h"
-#include "locale.h"
 
 #include "gtk/gtk.h"
 
@@ -368,6 +362,9 @@ gboolean arUpdateStatsAndVUMeters (gpointer data)
     int i;
     char value[16];
     float level;
+    float time;
+    unsigned int int_part;
+    unsigned int dec_part;
 
     for (i = 0; i < aw_pcm_params.nchannels; i++)
     {
@@ -399,8 +396,13 @@ gboolean arUpdateStatsAndVUMeters (gpointer data)
     {
         gettimeofday (&timeRef, NULL);
         t2 = (long long) timeRef.tv_sec * 1000L + timeRef.tv_usec / 1000;
-        snprintf (value, sizeof value, "%.2f", totTime + ((float) (t2 - t1)) / 1000.0);
         
+        time = totTime + ((float) (t2 - t1)) / 1000.0;
+        int_part = (unsigned int) time;
+        dec_part = (unsigned int) ((time - int_part) * 100);
+
+        snprintf (value, sizeof value, "%d.%02d", int_part, dec_part);
+
         gtk_label_set_text (GUI->timeLabel, value);
         
         if (totTime > MAX_TOT_TIME) arRecordStop_();
