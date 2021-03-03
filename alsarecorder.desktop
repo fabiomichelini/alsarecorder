@@ -8,6 +8,6 @@ Path=/absolute/path/to/alsarecorder
 Terminal=false
 Type=Application
 Icon=/absolute/path/to/alsarecorder/media/alsarecorder-icon.png
-Categories=Audio;
+Categories=AudioVideo;
 StartupWMClass=Alsa Recorder
 StartupNotify=false
