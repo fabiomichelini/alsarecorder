@@ -51,7 +51,7 @@ int32_t aw_parser_S32_LE (char* p_sample);
 #define AW_DEFAULT_NCHANNELS 2
 #define AW_DEFAULT_FRAMERATE 44100
 #define AW_DEFAULT_FORMAT SND_PCM_FORMAT_S16_LE
-#define AW_DEFAULT_BUFFER_TIME 20000 // usec
+#define AW_MAX_BUFFER_TIME 50000 // usec
 #define AW_STAT_TIME 250000 // usec
 #define AW_MAX_PCMS_LENGTH 128
 

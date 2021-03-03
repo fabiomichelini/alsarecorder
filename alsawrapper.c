@@ -279,9 +279,7 @@ int aw_set_params (snd_pcm_t* p_pcm, AwPcmParams* p_hw_params)
     int err;
     int dir = 0;
     snd_pcm_hw_params_t* p_alsa_hw_params;
-    unsigned int min_buffer_time;
-    unsigned int max_buffer_time;
-    unsigned int buffer_time = AW_DEFAULT_BUFFER_TIME;
+    unsigned int buffer_time = AW_MAX_BUFFER_TIME;
     
     if ((err = snd_pcm_hw_params_malloc (&p_alsa_hw_params)) < 0)
         return aw_handle_err (snd_strerror (err));
@@ -304,7 +302,7 @@ int aw_set_params (snd_pcm_t* p_pcm, AwPcmParams* p_hw_params)
     if ((err = snd_pcm_hw_params_set_buffer_time_near (p_pcm, p_alsa_hw_params, &buffer_time, &dir)) < 0)
         return aw_handle_err (snd_strerror (err));    
     
-    if (buffer_time != AW_DEFAULT_BUFFER_TIME)
+    if (buffer_time != AW_MAX_BUFFER_TIME)
         printf ("need adjust buffer size");
 
 	snd_pcm_hw_params_get_buffer_size(p_alsa_hw_params, &(*p_hw_params).buffer_size);
