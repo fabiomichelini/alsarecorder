@@ -22,7 +22,7 @@ Than make it executable with ```chmod +x alsarecorder``` and double click on it.
 Download zip, unpack and double click on pre-builded executable ```alsarecorder```.
 
 ### launcher
-Customize and put ```alsarecorder.desktop```launcher in ```/.local/share/applications/``` under your home or in ```/usr/share/applications/``` for all users.
+Customize and put ```alsarecorder.desktop``` launcher in ```/.local/share/applications/``` under your home or in ```/usr/share/applications/``` for all users. Or run ```desktop-file-install alsarecorder.desktop```.
 
 ### screenshot
 <img src="/media/screenshot.png" width="300" />
