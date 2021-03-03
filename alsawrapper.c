@@ -95,6 +95,7 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
         snd_card_get_name(card_i, &card_human_name);
         snd_card_get_longname(card_i, &card_human_longname);   
         sprintf(card_name, "hw:%d", card_i);
+        // one more with sysdefault
 
         if ((err = snd_ctl_open(&p_ctl, card_name, 0)) < 0 || card_i < 0) continue;  
         
@@ -124,6 +125,7 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
                         continue;
                         
                     i = 0;
+                    
                     for (nchannels = min; nchannels <= max; nchannels++)
                     
                         if ((err = snd_pcm_hw_params_test_channels (p_pcm, p_hw_params, nchannels)) == 0)
@@ -243,7 +245,7 @@ int aw_print_pcm (AwPcm* p_aw_pcm)
         printf("    mode:  playback");
     else
         printf("    mode:  capture");
-    
+        
     printf("\n    nchannels:  ");
     j = 0;
     while ((*p_aw_pcm).nchannels[j] != -1 && j < 100)
@@ -251,7 +253,6 @@ int aw_print_pcm (AwPcm* p_aw_pcm)
         printf("%d  ", (*p_aw_pcm).nchannels[j]);
         j++;
     }     
-    
     printf("\n    framerates:  ");
     j = 0;
     while ((*p_aw_pcm).framerates[j] != -1)
@@ -259,7 +260,6 @@ int aw_print_pcm (AwPcm* p_aw_pcm)
         printf("%d  ", (*p_aw_pcm).framerates[j]);
         j++;
     }       
-
     printf("\n    formats:  ");
     j = 0;
     while ((*p_aw_pcm).formats[j] != SND_PCM_FORMAT_UNKNOWN)
@@ -268,9 +268,10 @@ int aw_print_pcm (AwPcm* p_aw_pcm)
         j++;
     }       
     printf("\n"); 
-    
+
     return 0;
 }
+
 
 /*============================================================================
                 pcm parameters
@@ -282,7 +283,7 @@ int aw_set_params (snd_pcm_t* p_pcm, AwPcmParams* p_hw_params)
     int err;
     int dir = 0;
     snd_pcm_hw_params_t* p_alsa_hw_params;
-    unsigned int buffer_time = AW_MAX_BUFFER_TIME;
+    unsigned int period_time = AW_DEFAULT_PERIOD_TIME;
     
     if ((err = snd_pcm_hw_params_malloc (&p_alsa_hw_params)) < 0)
         return aw_handle_err (snd_strerror (err));
@@ -301,14 +302,18 @@ int aw_set_params (snd_pcm_t* p_pcm, AwPcmParams* p_hw_params)
         
     if ((err = snd_pcm_hw_params_set_channels (p_pcm, p_alsa_hw_params, (*p_hw_params).nchannels)) < 0)
         return aw_handle_err (snd_strerror (err));
+
+    /* set buffer and period */
     
-    if ((err = snd_pcm_hw_params_set_buffer_time_near (p_pcm, p_alsa_hw_params, &buffer_time, &dir)) < 0)
+    if ((err = snd_pcm_hw_params_set_period_time_near (p_pcm, p_alsa_hw_params, &period_time, &dir)) < 0)
         return aw_handle_err (snd_strerror (err));    
     
-    if (buffer_time != AW_MAX_BUFFER_TIME)
-        printf ("need adjust buffer size");
+    if (period_time != AW_DEFAULT_PERIOD_TIME)
+        printf ("need adjust period size");
 
-	snd_pcm_hw_params_get_buffer_size(p_alsa_hw_params, &(*p_hw_params).buffer_size);
+	snd_pcm_hw_params_get_period_size (p_alsa_hw_params, &(*p_hw_params).period_size, &dir);    
+	snd_pcm_hw_params_set_buffer_size (p_pcm, p_alsa_hw_params, (*p_hw_params).period_size * AW_DEFAULT_PERIOD_COUNT);
+    snd_pcm_hw_params_get_buffer_size (p_alsa_hw_params, &(*p_hw_params).buffer_size);
 
     if ((err = snd_pcm_hw_params (p_pcm, p_alsa_hw_params)) < 0)
         return aw_handle_err (snd_strerror(err));

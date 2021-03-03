@@ -472,18 +472,8 @@ int arDrawPcmDevices ()
 
 int arGetPcmDevice (AwPcm** p_p_aw_pcm)
 {    
-    int err = -1;
-    int i;
-
-    for (i = 0; i < aw_pcms_length; i++)
-        
-        if (aw_pcms[i].mode == SND_PCM_STREAM_CAPTURE)
-        {
-            *p_p_aw_pcm = &aw_pcms[i];
-            err = 0;
-            break;
-        }
-    return err;
+    *p_p_aw_pcm = &aw_pcms[0];
+    return 0;
 }
 
 int arResetNumericMeter (GtkButton* button)
@@ -491,7 +481,7 @@ int arResetNumericMeter (GtkButton* button)
     int i = atoi (gtk_widget_get_name ( GTK_WIDGET (button)));
 
     gtk_style_context_remove_class (gtk_widget_get_style_context (GTK_WIDGET (button)), "vu-numeric-meter-clipped");
-    gtk_button_set_label (button, "00");
+    gtk_button_set_label (button, "0");
     ss.clip[i] = 0; // TODO
     ss.max[i] = 0; // TODO
 }
@@ -547,7 +537,7 @@ int arDrawVUMeters ()
         GUI->vuGraphicMeters[i] = bar;
         
         /* numeric button */
-        button = GTK_BUTTON (gtk_button_new_with_label ("00"));
+        button = GTK_BUTTON (gtk_button_new_with_label ("0"));
         gtk_widget_set_name (GTK_WIDGET (button), val);
         gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (button)), "vu-numeric-meter");
         g_signal_connect (GTK_WIDGET (button), "clicked", G_CALLBACK (arResetNumericMeter), NULL);
@@ -749,7 +739,7 @@ int arUpdatePcmOptionsPanel ()
     for (i = 0; i < AW_MAX_NCHANNELS_LENGTH; i++)
     {
         if ((*p_aw_pcm).nchannels[i] == -1) break;
-          
+
         snprintf (label, sizeof label, "%d", (*p_aw_pcm).nchannels[i]);        
         snprintf (name, sizeof name, "%d", i);        
         button = GTK_RADIO_BUTTON (gtk_radio_button_new_with_label (group, label));
@@ -851,7 +841,7 @@ int arChangePcmDevice (GtkRadioButton* button)
                     // TODO: freeze gui with restart icon
                     arPcmStop ();
                     p_aw_pcm = &aw_pcms[i];
-                    arUpdatePcmOptionsPanel ();      
+                    arUpdatePcmOptionsPanel ();   
                     if (arPcmStart () != 0) return -1;
                     // TODO: unfreeze gui with restart icon
                 }
@@ -917,6 +907,7 @@ int arSwitchSaveFormat (GtkRadioButton* button)
     }
 }
 
+
 /*============================================================================
 				main cycle
 ============================================================================*/
@@ -970,9 +961,10 @@ int main (int argc, char **argv)
 
 
     arDrawPcmDevices ();
+    
     if (arGetPcmDevice (&p_aw_pcm) < 0)
-        gtk_main_quit();
-
+        return -1;
+        
     aw_print_pcm (p_aw_pcm);
     
 

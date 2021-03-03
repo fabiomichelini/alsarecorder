@@ -29,3 +29,5 @@ Customize and put ```alsarecorder.desktop``` launcher in ```/.local/share/applic
 
 ### to do
 * save in memory with iostream  
+* handle xrun
+* handle multichannel format save
