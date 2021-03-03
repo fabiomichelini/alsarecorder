@@ -40,6 +40,7 @@ int aw_handle_err (const char* msg);
 
 int32_t aw_parser_S8 (char* p_sample);
 int32_t aw_parser_S16_LE (char* p_sample);
+int32_t aw_parser_S24_3LE (char* p_sample);
 int32_t aw_parser_S32_LE (char* p_sample);
 
 
@@ -114,13 +115,14 @@ static const uint32_t AW_POPULAR_FRAMERATES[AW_POPULAR_FRAMERATES_LENGTH] = {
     192000
 };
 
-#define AW_POPULAR_FORMATS_LENGTH 5
+#define AW_POPULAR_FORMATS_LENGTH 6
 
 static const snd_pcm_format_t AW_POPULAR_FORMATS[AW_POPULAR_FORMATS_LENGTH] = {
     
     SND_PCM_FORMAT_S8,
     SND_PCM_FORMAT_S16_LE,
     SND_PCM_FORMAT_U16_LE, 	
+    SND_PCM_FORMAT_S24_3LE,
     SND_PCM_FORMAT_S24_LE, 	
     SND_PCM_FORMAT_S32_LE
 };

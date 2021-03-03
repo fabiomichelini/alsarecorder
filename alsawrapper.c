@@ -44,6 +44,11 @@ int32_t aw_parser_S16_LE (char* p_sample)
     return (int32_t) *((int16_t*) p_sample);
 }
 
+int32_t aw_parser_S24_3LE (char* p_sample)
+{
+    return (int32_t) (*p_sample + *(p_sample+1) + *(p_sample+2));
+}
+
 int32_t aw_parser_S32_LE (char* p_sample)
 {
     return (int32_t) *((int32_t*) p_sample);
@@ -65,7 +70,6 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
     int framerate_i;
     int format_i;
     snd_pcm_stream_t mode;
-    snd_pcm_format_mask_t* p_mask;
     char card_name[32];
     char dev_name[32];
     char* card_human_name = NULL;
@@ -75,6 +79,7 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
     snd_pcm_hw_params_t* p_hw_params;
     int dir;
     uint32_t min, max;
+    snd_pcm_format_t fmt;
 
     *p_aw_pcms_length = 0;
 
@@ -90,7 +95,7 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
         snd_card_get_name(card_i, &card_human_name);
         snd_card_get_longname(card_i, &card_human_longname);   
         sprintf(card_name, "hw:%d", card_i);
-        
+
         if ((err = snd_ctl_open(&p_ctl, card_name, 0)) < 0 || card_i < 0) continue;  
         
         dev_i = -1;
@@ -134,7 +139,7 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
                         
                     if ((err = snd_pcm_hw_params_get_rate_max (p_hw_params, &max, &dir)) < 0)
                         continue;
-                        
+                    
                     i = 0;
                     for (framerate_i = 0; framerate_i < AW_POPULAR_FRAMERATES_LENGTH; framerate_i++)
 
@@ -164,10 +169,8 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
                     snprintf (aw_pcms[*p_aw_pcms_length].cardname, sizeof aw_pcms[*p_aw_pcms_length].cardname, "%s", card_human_name);
                     snprintf (aw_pcms[*p_aw_pcms_length].cardlongname, sizeof aw_pcms[*p_aw_pcms_length].cardlongname, "%s", card_human_longname);
                     
-                    // sprintf(aw_pcms[*p_aw_pcms_length].info, "%s", info);
-                    
                     (*p_aw_pcms_length)++;
-
+                    
                     if ((err = snd_pcm_close (p_pcm)) < 0) 
                         continue;
                 }
@@ -319,6 +322,10 @@ int aw_set_params (snd_pcm_t* p_pcm, AwPcmParams* p_hw_params)
     } else if ((*p_hw_params).format == SND_PCM_FORMAT_S16_LE) {
 
         (*p_hw_params).p_parser = &aw_parser_S16_LE;
+    
+    } else if ((*p_hw_params).format == SND_PCM_FORMAT_S24_3LE) {
+
+        (*p_hw_params).p_parser = &aw_parser_S24_3LE;
     
     } else if ((*p_hw_params).format == SND_PCM_FORMAT_S24_LE) {
 
