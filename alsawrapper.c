@@ -366,9 +366,9 @@ int aw_print_params (AwPcmParams hw_params)
 
     printf ("nchannels: %d\n", hw_params.nchannels);
     printf ("framerate: %d\n", hw_params.framerate);
-    printf ("format: %d\n", hw_params.format);
-    printf ("is_signed: %d\n", hw_params.is_signed);
-    printf ("is_little_endian: %d\n", hw_params.is_little_endian);
+    printf ("format: %s\n", snd_pcm_format_name (hw_params.format));
+    printf ("is_signed: %s\n", hw_params.is_signed ? "true" : "false");
+    printf ("is_little_endian: %s\n", hw_params.is_little_endian ? "true" : "false");
     printf ("nominal_bits: %d\n", hw_params.nominal_bits);
     printf ("real_bits: %d\n", hw_params.real_bits);
     printf ("samplesize: %d\n", hw_params.samplesize);
