@@ -7,9 +7,9 @@ Micro library alsawrapper provide some alsa facilities.
 ![Alsa Recorder Logo](/media/alsarecorder-icon.png)
 
 ### dependencies
-* libgtk-3-0 libgtk-3-dev
-* libasound2-dev
-* ffmpeg
+* ```libgtk-3-0``` and ```libgtk-3-dev``` required for compile
+* ```libasound2-dev``` required for compile
+* ```ffmpeg``` optional for mp3 save format
 
 ### compilation
 Download zip, unpack and compile with:  
