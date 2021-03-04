@@ -72,6 +72,7 @@ typedef struct AwPcm {
     snd_pcm_uframes_t period_size_max[32];
     snd_pcm_uframes_t buffer_size_min[32];
     snd_pcm_uframes_t buffer_size_max[32];
+    int has_plughw;
     char name[32];
     char cardname[128];
     char cardlongname[256];
@@ -99,6 +100,14 @@ typedef struct AwPcmParams {
     char description[512];
 
 } AwPcmParams;
+
+#define AW_ALSA_PLUGINS_LENGTH 3
+
+static const char* AW_ALSA_PLUGINS[AW_ALSA_PLUGINS_LENGTH] = {
+    
+    "hw",
+    "plughw"
+};
 
 #define AW_POPULAR_FRAMERATES_LENGTH 9
 

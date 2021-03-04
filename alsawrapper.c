@@ -63,6 +63,7 @@ int32_t aw_parser_S32_LE (char* p_sample)
 int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
 {
     int err;
+    int plug_i;
     int card_i;
     int dev_i;
     int i;
@@ -72,6 +73,7 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
     snd_pcm_stream_t mode;
     char card_name[32];
     char dev_name[32];
+    char plug_dev_name[32];
     char* card_human_name = NULL;
     char* card_human_longname = NULL;
     snd_ctl_t* p_ctl;
@@ -94,8 +96,8 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
         
         snd_card_get_name(card_i, &card_human_name);
         snd_card_get_longname(card_i, &card_human_longname);   
+
         sprintf(card_name, "hw:%d", card_i);
-        // one more with sysdefault
 
         if ((err = snd_ctl_open(&p_ctl, card_name, 0)) < 0 || card_i < 0) continue;  
         
@@ -105,7 +107,8 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
         {
             if ((err = snd_ctl_pcm_next_device (p_ctl, &dev_i)) < 0 || dev_i < 0) break;
             
-            snprintf(dev_name, sizeof dev_name, "hw:%d,%d", card_i, dev_i);   
+            snprintf(dev_name, sizeof dev_name, "hw:%d,%d", card_i, dev_i);  
+            snprintf(plug_dev_name, sizeof dev_name, "plughw:%d,%d", card_i, dev_i);   
             
             mode = SND_PCM_STREAM_CAPTURE;
 
@@ -124,16 +127,16 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
                     if ((err = snd_pcm_hw_params_get_channels_max (p_hw_params, &max)) < 0)
                         continue;
                         
-                    i = 0;
-                    
+                    i = 0;                        
                     for (nchannels = min; nchannels <= max; nchannels++)
                     
                         if ((err = snd_pcm_hw_params_test_channels (p_pcm, p_hw_params, nchannels)) == 0)
                         {
                             aw_pcms[*p_aw_pcms_length].nchannels[i] = nchannels;
-                            i++;                            
+                            i++;                     
                         }
                     if (i == 0) continue;
+                    
                     aw_pcms[*p_aw_pcms_length].nchannels[i] = -1;
                     
                     if ((err = snd_pcm_hw_params_get_rate_min ( p_hw_params, &min, &dir)) < 0) 
@@ -171,14 +174,38 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
                     snprintf (aw_pcms[*p_aw_pcms_length].cardname, sizeof aw_pcms[*p_aw_pcms_length].cardname, "%s", card_human_name);
                     snprintf (aw_pcms[*p_aw_pcms_length].cardlongname, sizeof aw_pcms[*p_aw_pcms_length].cardlongname, "%s", card_human_longname);
                     
-                    (*p_aw_pcms_length)++;
-                    
                     if ((err = snd_pcm_close (p_pcm)) < 0) 
                         continue;
                 }
+                
+                if ((err = snd_pcm_open (&p_pcm, plug_dev_name, mode, SND_PCM_ASYNC)) == 0)
+                {
+                    if (snd_pcm_hw_params_any (p_pcm, p_hw_params) == 0 &&                        
+                        snd_pcm_hw_params_test_channels (p_pcm, p_hw_params, AW_DEFAULT_NCHANNELS) == 0 &&
+                        snd_pcm_hw_params_test_rate (p_pcm, p_hw_params, AW_DEFAULT_FRAMERATE, 0) == 0 &&
+                        snd_pcm_hw_params_test_format (p_pcm, p_hw_params, AW_DEFAULT_FORMAT) == 0)
+                    {
+                        aw_pcms[*p_aw_pcms_length].has_plughw = 1;
 
-                if (mode == SND_PCM_STREAM_PLAYBACK) break;
-                mode = SND_PCM_STREAM_PLAYBACK;
+                    } else {
+
+                        aw_pcms[*p_aw_pcms_length].has_plughw = 0;
+                    }
+
+                    if ((err = snd_pcm_close (p_pcm)) < 0) 
+                        ;
+
+                } else {
+
+                    aw_pcms[*p_aw_pcms_length].has_plughw = 0;
+                }
+                
+                if (mode == SND_PCM_STREAM_PLAYBACK)
+                    break;
+                else
+                    mode = SND_PCM_STREAM_PLAYBACK;
+
+                (*p_aw_pcms_length)++;                    
             }
         }
         snd_ctl_close(p_ctl);
@@ -199,7 +226,8 @@ int aw_print_pcms (AwPcm aw_pcms[], uint8_t aw_pcms_length)
     {
         printf("\nPCM: %s\n", (*(aw_pcms + i)).name);
         printf("\n    card name: %s", (*(aw_pcms + i)).cardname);
-        printf("\n    card long name: %s\n", (*(aw_pcms + i)).cardlongname);
+        printf("\n    card long name: %s", (*(aw_pcms + i)).cardlongname);
+        printf("\n    has plughw: %s\n", (*(aw_pcms + i)).has_plughw ? "true" : "false");
         if ((*(aw_pcms + i)).mode == SND_PCM_STREAM_PLAYBACK) 
             printf("    mode:  playback");
         else
@@ -239,7 +267,8 @@ int aw_print_pcm (AwPcm* p_aw_pcm)
     
     printf("\nPCM: %s\n", (*p_aw_pcm).name);
     printf("\n    card name: %s", (*p_aw_pcm).cardname);
-    printf("\n    card long name: %s\n", (*p_aw_pcm).cardlongname);
+    printf("\n    card long name: %s", (*p_aw_pcm).cardlongname);
+    printf("\n    has plughw: %s\n", (*p_aw_pcm).has_plughw ? "true" : "false");
     
     if ((*p_aw_pcm).mode == SND_PCM_STREAM_PLAYBACK) 
         printf("    mode:  playback");

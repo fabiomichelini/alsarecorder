@@ -50,7 +50,11 @@ static snd_pcm_t* p_pcm = NULL;
 static AwPcm aw_pcms[AW_MAX_PCMS_LENGTH];
 static uint8_t aw_pcms_length;
 static AwPcmParams aw_pcm_params;
+static uint8_t _nchannels;
+static uint32_t _framerate;
+static snd_pcm_format_t _format;
 static aw_record_state_t state = AW_STOPPED;
+static int defaultPcm = 0;
 static int saveFormat = SAVE_TO_WAV;
 static int vuFormat = VU_LOGARITHMIC;
 static AwComputeStruct ss;
@@ -95,6 +99,9 @@ typedef struct Gui {
     GtkWidget* main;
 
     GtkButtonBox* deviceOptionsButtonBox;
+
+    GtkToggleButton* pcmPlugHwButton;
+    gulong pcmPlugHwButtonId;
 
     GtkButtonBox* pcmNchannelsOptions;
     GtkButtonBox* pcmFramerateOptions;
@@ -449,7 +456,7 @@ int arAbout ()
     gtk_widget_show_all (dialog);
 }
 
-int arDrawPcmDevices ()
+int arGetPcmDevices ()
 {
     int i;
     int j;
@@ -557,15 +564,24 @@ int arDrawVUMeters ()
 int arPcmStart ()
 {      
     pthread_t thread_id;
-
+    char name[sizeof (*p_aw_pcm).name + sizeof "plug"];
+    
     /* open and set pcm */
     
-    if ((err = snd_pcm_open (&p_pcm, (*p_aw_pcm).name, SND_PCM_STREAM_CAPTURE, SND_PCM_ASYNC)) < 0)
+    if (defaultPcm)
+    {
+        snprintf (name, sizeof name, "plug%s", (*p_aw_pcm).name);
+            
+    } else {
+
+        snprintf (name, sizeof name, "%s", (*p_aw_pcm).name);
+    }
+    if ((err = snd_pcm_open (&p_pcm, name, SND_PCM_STREAM_CAPTURE, SND_PCM_ASYNC)) < 0)
         return aw_handle_err (snd_strerror (err));
-        
+    
     if ((err = aw_set_params (p_pcm, &aw_pcm_params)) < 0)
         return aw_handle_err ("cannot set params");  
-
+    
     aw_print_params (aw_pcm_params);
 
     if ((err = snd_pcm_prepare (p_pcm)) < 0)
@@ -699,6 +715,51 @@ int arChangePcmOptionsFormat (GtkRadioButton* button) {
     }
 }
 
+int arSwitchDefaultPcm (GtkToggleButton* button)
+{
+    printf ("HERE\n");
+    arPcmStop ();
+
+    if (gtk_toggle_button_get_active (button))
+    {
+        defaultPcm = 1;
+
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmNchannelsOptions), FALSE);
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmFramerateOptions), FALSE);
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmFormatOptions), FALSE);
+
+        _nchannels = aw_pcm_params.nchannels;
+        _framerate = aw_pcm_params.framerate;
+        _format = aw_pcm_params.format;
+
+        aw_pcm_params.nchannels = AW_DEFAULT_NCHANNELS;
+        aw_pcm_params.framerate = AW_DEFAULT_FRAMERATE;
+        aw_pcm_params.format = AW_DEFAULT_FORMAT;       
+
+        arDrawVUMeters ();        
+
+        if (arPcmStart () != 0)
+            arQuit_ ();
+            
+    } else {
+        
+        defaultPcm = 0;
+
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmNchannelsOptions), TRUE);
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmFramerateOptions), TRUE);
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmFormatOptions), TRUE);  
+
+        aw_pcm_params.nchannels = _nchannels;
+        aw_pcm_params.framerate = _framerate;
+        aw_pcm_params.format = _format;
+
+        arDrawVUMeters ();   
+        
+        if (arPcmStart () != 0)
+            arQuit_ ();                 
+    }    
+}
+
 int arUpdatePcmOptionsPanel ()
 {
     GList* children;
@@ -732,7 +793,7 @@ int arUpdatePcmOptionsPanel ()
     g_list_free (children);
 
     /* draw nchannels radio box */  
-
+    
     aw_pcm_params.nchannels = (*p_aw_pcm).nchannels[0];
     group = NULL;
     
@@ -754,7 +815,6 @@ int arUpdatePcmOptionsPanel ()
         {                  
             gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
             aw_pcm_params.nchannels = AW_DEFAULT_NCHANNELS;
-
         }
         g_signal_connect(GTK_WIDGET (button), "clicked", G_CALLBACK (arChangePcmOptionsNChannels), NULL);
         gtk_container_add (GTK_CONTAINER (GUI->pcmNchannelsOptions), GTK_WIDGET (button));
@@ -799,7 +859,7 @@ int arUpdatePcmOptionsPanel ()
     for (i = 0; i < AW_MAX_FORMATS_LENGTH; i++)
     {
         if ((*p_aw_pcm).formats[i] == -1) break;
-
+        
         snprintf (label, sizeof label, "%s", snd_pcm_format_name ((*p_aw_pcm).formats[i]));   
         snprintf (name, sizeof name, "%d", i);
         button = GTK_RADIO_BUTTON (gtk_radio_button_new_with_label (group, label));
@@ -807,10 +867,9 @@ int arUpdatePcmOptionsPanel ()
         gtk_widget_set_name (GTK_WIDGET (button), name);
         gtk_toggle_button_set_mode (GTK_TOGGLE_BUTTON (button), FALSE);
         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), FALSE);
-
         gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (button)), "option-button");
         
-        if ((*p_aw_pcm).formats[i] == AW_DEFAULT_FRAMERATE)
+        if ((*p_aw_pcm).formats[i] == AW_DEFAULT_FORMAT)
         {                  
             gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
             aw_pcm_params.format = AW_DEFAULT_FORMAT;
@@ -820,8 +879,44 @@ int arUpdatePcmOptionsPanel ()
         gtk_container_add (GTK_CONTAINER (GUI->pcmFormatOptions), GTK_WIDGET (button));
     }
     gtk_widget_show_all (GTK_WIDGET (GUI->pcmFormatOptions));
+    
+    /* plughw */  
+    
+    if (GUI->pcmPlugHwButtonId > 0){
+        g_signal_handler_disconnect (GTK_WIDGET (GUI->pcmPlugHwButton), GUI->pcmPlugHwButtonId);}
 
-    arDrawVUMeters ();
+    if ((*p_aw_pcm).has_plughw)
+    {
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (GUI->pcmPlugHwButton), TRUE);
+    
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmNchannelsOptions), FALSE);
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmFramerateOptions), FALSE);
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmFormatOptions), FALSE);
+        
+        _nchannels = aw_pcm_params.nchannels;
+        _framerate = aw_pcm_params.framerate;
+        _format = aw_pcm_params.format;
+
+        aw_pcm_params.nchannels = AW_DEFAULT_NCHANNELS;
+        aw_pcm_params.framerate = AW_DEFAULT_FRAMERATE;
+        aw_pcm_params.format = AW_DEFAULT_FORMAT;  
+        
+        defaultPcm = 1;     
+     
+    } else {
+        
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (GUI->pcmPlugHwButton), FALSE);
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmPlugHwButton), FALSE);
+
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmNchannelsOptions), TRUE);
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmFramerateOptions), TRUE);
+        gtk_widget_set_sensitive (GTK_WIDGET (GUI->pcmFormatOptions), TRUE);        
+
+        defaultPcm = 0;
+    }        
+    GUI->pcmPlugHwButtonId = g_signal_connect (GTK_WIDGET (GUI->pcmPlugHwButton), "toggled", G_CALLBACK (arSwitchDefaultPcm), NULL);
+    
+    arDrawVUMeters ();   
 }
 
 int arChangePcmDevice (GtkRadioButton* button)
@@ -840,12 +935,14 @@ int arChangePcmDevice (GtkRadioButton* button)
                 {
                     // TODO: freeze gui with restart icon
                     arPcmStop ();
-                    p_aw_pcm = &aw_pcms[i];
+                    p_aw_pcm = &aw_pcms[i];                    
                     arUpdatePcmOptionsPanel ();   
+                    
+                    aw_print_pcm (p_aw_pcm);
+
                     if (arPcmStart () != 0) return -1;
                     // TODO: unfreeze gui with restart icon
                 }
-                aw_print_pcm (p_aw_pcm);
                 break;
             }
         }
@@ -960,7 +1057,9 @@ int main (int argc, char **argv)
     ===============*/
 
 
-    arDrawPcmDevices ();
+    arGetPcmDevices ();
+
+    aw_print_pcms (aw_pcms, aw_pcms_length);
     
     if (arGetPcmDevice (&p_aw_pcm) < 0)
         return -1;
@@ -1002,6 +1101,8 @@ int main (int argc, char **argv)
     
     GUI->main = window;
     GUI->deviceOptionsButtonBox = GTK_BUTTON_BOX (gtk_builder_get_object (builder, "device-options"));
+    GUI->pcmPlugHwButton = GTK_TOGGLE_BUTTON (gtk_builder_get_object (builder, "pcm-plughw-toggle-button"));
+    GUI->pcmPlugHwButtonId = 0;
     GUI->pcmNchannelsOptions = GTK_BUTTON_BOX (gtk_builder_get_object (builder, "pcm-nchannels-options"));
     GUI->pcmFramerateOptions = GTK_BUTTON_BOX (gtk_builder_get_object (builder, "pcm-framerate-options"));
     GUI->pcmFormatOptions = GTK_BUTTON_BOX (gtk_builder_get_object (builder, "pcm-format-options"));
