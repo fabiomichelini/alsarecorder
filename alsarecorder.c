@@ -721,7 +721,6 @@ int arChangePcmOptionsFormat (GtkRadioButton* button) {
 
 int arSwitchDefaultPcm (GtkToggleButton* button)
 {
-    printf ("HERE\n");
     arPcmStop ();
 
     if (gtk_toggle_button_get_active (button))
