@@ -231,6 +231,8 @@ typedef struct AwComputeStruct {
 
 int aw_build_compute_struct (AwPcmParams hw_params, AwComputeStruct* p_ss);
 
+int aw_free_compute_struct (AwComputeStruct* p_ss);
+
 float aw_queue_cycle (AwComputeStruct* p_ss, int channel_i, float entry);
 
 int aw_compute (void* p_buffer, AwPcmParams* p_params, AwComputeStruct* p_ss);

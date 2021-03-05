@@ -199,7 +199,7 @@ int aw_get_pcm_devices (AwPcm aw_pcms[], uint8_t* p_aw_pcms_length)
 
                     aw_pcms[*p_aw_pcms_length].has_plughw = 0;
                 }
-                
+
                 if (mode == SND_PCM_STREAM_PLAYBACK)
                     break;
                 else
@@ -228,6 +228,7 @@ int aw_print_pcms (AwPcm aw_pcms[], uint8_t aw_pcms_length)
         printf("\n    card name: %s", (*(aw_pcms + i)).cardname);
         printf("\n    card long name: %s", (*(aw_pcms + i)).cardlongname);
         printf("\n    has plughw: %s\n", (*(aw_pcms + i)).has_plughw ? "true" : "false");
+
         if ((*(aw_pcms + i)).mode == SND_PCM_STREAM_PLAYBACK) 
             printf("    mode:  playback");
         else
@@ -448,13 +449,21 @@ int aw_build_compute_struct (AwPcmParams hw_params, AwComputeStruct* p_ss)
     return 0;
 }
 
+int aw_free_compute_struct (AwComputeStruct* p_ss) {
+
+    free (p_ss->avgs_queue);
+    free (p_ss->avg_power);
+    free (p_ss->avg_log);
+    free (p_ss->max);
+    free (p_ss->clip);
+}
+
 int aw_compute (void* p_buffer, AwPcmParams* p_params, AwComputeStruct* p_ss)
 {
     int frame_i;
     int channel_i;
     int32_t value;
     float nvalue;
-    int32_t max[2];
     double sum_power;
     float in_avg;
     float out_avg;
@@ -463,15 +472,13 @@ int aw_compute (void* p_buffer, AwPcmParams* p_params, AwComputeStruct* p_ss)
     for (channel_i = 0; channel_i < (*p_params).nchannels; channel_i++)
     {        
         sum_power = 0;
-        max[channel_i] = 0;
         p_sample = ((char*) p_buffer);
         p_sample += (*p_params).samplesize * channel_i;
-
+        
         for (frame_i = 0; frame_i < (*p_params).buffer_size; frame_i++)
         {   
             value = (*(*p_params).p_parser) (p_sample);   
             p_sample += (*p_params).framesize; 
-            if (value > max[channel_i]) max[channel_i] = value;
             nvalue = abs (value) * 100.0 / (*p_params).max;  
 
             if (nvalue >= 100) 
@@ -485,9 +492,9 @@ int aw_compute (void* p_buffer, AwPcmParams* p_params, AwComputeStruct* p_ss)
         }
         in_avg = sqrt ((sum_power / (*p_params).buffer_size)) / (*p_ss).avgs_queue_length;        
         out_avg = aw_queue_cycle (p_ss, channel_i, in_avg);
-
+        
         (*p_ss).avg_power[channel_i] += (in_avg - out_avg);
-
+        
         if ((*p_ss).avg_power[channel_i] > 1)
         {
             (*p_ss).avg_log[channel_i] = 20 * log10 ((*p_ss).avg_power[channel_i]) / 40 * 100;
@@ -506,13 +513,13 @@ int aw_cycle (snd_pcm_t* p_pcm, AwPcmParams* p_hw_params, FILE** p_p_f, AwComput
     int err;    
     void* p_buffer = malloc (snd_pcm_frames_to_bytes (p_pcm, (*p_hw_params).buffer_size));
     snd_pcm_sframes_t nframes_or_err;
-    
+
     i = 0;
     
     while (*p_state == AW_RECORDING || *p_state == AW_MONITORING || *p_state == AW_PAUSED)
     {
         if ((nframes_or_err = snd_pcm_readi (p_pcm, p_buffer, (*p_hw_params).buffer_size)) != (*p_hw_params).buffer_size)        
-            if (snd_pcm_recover(p_pcm, nframes_or_err, 0) < 0)
+            if (snd_pcm_recover (p_pcm, nframes_or_err, 0) < 0)
                 return aw_handle_err (snd_strerror (nframes_or_err));
                 
         if (aw_compute (p_buffer, p_hw_params, p_ss) < 0)
@@ -525,6 +532,7 @@ int aw_cycle (snd_pcm_t* p_pcm, AwPcmParams* p_hw_params, FILE** p_p_f, AwComput
         }        
         i++;
     }
+    free (p_buffer);
     *p_state = AW_STOPPED;
     
     return 0;

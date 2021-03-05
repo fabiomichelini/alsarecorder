@@ -589,14 +589,14 @@ int arPcmStart ()
         
     if ((err = snd_pcm_state (p_pcm)) != SND_PCM_STATE_PREPARED)
         return aw_handle_err( snd_strerror (err));
-        
+    
     if ((err = snd_pcm_start (p_pcm)) < 0)
         return aw_handle_err (snd_strerror (err));
-        
+    
     state = AW_MONITORING;
             
     /* prepare stats struct */
-    
+
     aw_build_compute_struct (aw_pcm_params, &ss);   
     
     /* start thread */
@@ -611,7 +611,7 @@ int arPcmStart ()
     
     sleep (0.5);
     
-    g_timeout_add (UPDATE_TIMER_INTERVAL, (GSourceFunc) arUpdateStatsAndVUMeters, NULL);
+    g_timeout_add (UPDATE_TIMER_INTERVAL, (GSourceFunc) arUpdateStatsAndVUMeters, NULL);    
     
     return 0;
 }
@@ -620,8 +620,12 @@ int arPcmStop ()
 {      
     state = AW_STOPPING;
 
-    while (state != AW_STOPPED) sleep (0.1);
+    while (state != AW_STOPPED) sleep (0.1);    
     
+    /* free stats struct */
+
+    aw_free_compute_struct (&ss);       
+
     if ((err = snd_pcm_close (p_pcm)) < 0)
         return aw_handle_err (snd_strerror(err));
 
@@ -752,11 +756,11 @@ int arSwitchDefaultPcm (GtkToggleButton* button)
         aw_pcm_params.nchannels = _nchannels;
         aw_pcm_params.framerate = _framerate;
         aw_pcm_params.format = _format;
-
+        
         arDrawVUMeters ();   
         
         if (arPcmStart () != 0)
-            arQuit_ ();                 
+            arQuit_ ();              
     }    
 }
 
@@ -880,7 +884,10 @@ int arUpdatePcmOptionsPanel ()
     }
     gtk_widget_show_all (GTK_WIDGET (GUI->pcmFormatOptions));
     
-    /* plughw */  
+    /* plughw */
+
+    snprintf (label, sizeof label, "cd quality (plug%s)", (*p_aw_pcm).name);   
+    gtk_button_set_label (GTK_BUTTON (GUI->pcmPlugHwButton), label);
     
     if (GUI->pcmPlugHwButtonId > 0){
         g_signal_handler_disconnect (GTK_WIDGET (GUI->pcmPlugHwButton), GUI->pcmPlugHwButtonId);}
@@ -924,7 +931,7 @@ int arChangePcmDevice (GtkRadioButton* button)
     int i;
     
     if (state == AW_RECORDING || state == AW_PAUSED) return 0;
-
+    
     if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button)))
     {
         for (i = 0; i < aw_pcms_length; i++)
